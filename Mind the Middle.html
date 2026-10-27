@@ -1,0 +1,396 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mind the Middle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&display=swap">
+<style>
+/* Layout: one centered column of stacked screens (intro, study, recall, result, final).
+   Zone colors carry the idea: start = teal, middle = rose (the challenge), end = blue. */
+:root{
+  --bg:#EDF0F6; --surface:#FFFFFF; --fg:#121A2E; --muted:#59627A; --line:#D3D9E6;
+  --start:#1A7F8E; --mid:#C8324F; --end:#3B5BA5; --on-mid:#FFFFFF;
+  --display:'Syne','Arial Black',system-ui,sans-serif;
+  --body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1322; --surface:#171E33; --fg:#E8ECF6; --muted:#9AA4BC; --line:#2A3452;
+    --start:#4FC3D3; --mid:#FF6B86; --end:#8FA9F0; --on-mid:#1A0A10; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1322; --surface:#171E33; --fg:#E8ECF6; --muted:#9AA4BC; --line:#2A3452;
+  --start:#4FC3D3; --mid:#FF6B86; --end:#8FA9F0; --on-mid:#1A0A10; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--body); font-size:16px; line-height:1.5;
+  padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.top b{color:var(--fg);font-weight:500}
+section{display:flex;flex-direction:column;gap:16px;min-width:0}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,11vw,3.2rem);line-height:1;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h2{font-family:var(--display);font-weight:800;font-size:1.7rem;line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lead{font-size:1.1rem}
+.muted{color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+ul.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.btn{font:inherit;font-weight:600;border:1px solid transparent;border-radius:10px;padding:14px 18px;background:var(--mid);color:var(--on-mid);cursor:pointer;width:100%;min-height:48px}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:3px solid var(--end);outline-offset:2px}
+.mid-tag{color:var(--mid);font-weight:600}
+
+/* study */
+.ticks{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.ticks i{height:6px;border-radius:3px;background:var(--line)}
+.ticks i.on.start{background:var(--start)} .ticks i.on.mid{background:var(--mid)} .ticks i.on.end{background:var(--end)}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-height:15rem;display:flex;flex-direction:column;justify-content:space-between;padding:16px 18px}
+.stage .label{display:flex;justify-content:space-between;gap:8px}
+.word{font-family:var(--display);font-weight:800;font-size:clamp(2.4rem,13vw,4.4rem);text-align:center;line-height:1.1;overflow-wrap:anywhere;min-height:1.2em;letter-spacing:-.01em}
+.word.count{color:var(--muted)}
+.stage.zone-mid .zl{color:var(--mid)} .stage.zone-start .zl{color:var(--start)} .stage.zone-end .zl{color:var(--end)}
+
+/* recall */
+.entry{display:flex;gap:8px}
+.entry input{flex:1;min-width:0;font:inherit;font-size:1.1rem;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);min-height:48px}
+.entry .btn{width:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.95rem}
+.chip button{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;padding:0 0 0 2px;font-size:1.1rem;line-height:1}
+.chip.rec{padding-right:6px}
+
+/* result */
+.score{font-family:var(--display);font-weight:800;font-size:3rem;line-height:1}
+.score small{font-size:1.1rem;color:var(--muted);font-family:var(--body);font-weight:500}
+.zones{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.zone{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.zone .label{color:var(--c);font-size:11px}
+.zone .big{font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1}
+.zone .sub{font-size:12px;color:var(--muted)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:var(--w);background:var(--c)}
+.z-start{--c:var(--start)} .z-mid{--c:var(--mid)} .z-end{--c:var(--end)}
+.wchip{display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:999px;border:1px dashed var(--muted);color:var(--muted);text-decoration:line-through}
+.wchip b{font-family:var(--mono);font-size:11px;font-weight:500;text-decoration:none;display:inline-block}
+.wchip.hit{border:1px solid var(--c);color:var(--fg);text-decoration:none;background:color-mix(in srgb,var(--c) 16%,var(--surface))}
+.verdict{border-radius:12px;padding:14px 16px;background:color-mix(in srgb,var(--mid) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--mid) 35%,var(--line))}
+
+/* final chart */
+.chart{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.chart .col{display:flex;flex-direction:column;gap:4px;align-items:stretch;min-width:0}
+.chart .track{height:150px;display:flex;align-items:flex-end;border-bottom:1px solid var(--line)}
+.chart .track i{display:block;width:100%;height:var(--h);min-height:3px;background:var(--c);border-radius:4px 4px 0 0}
+.chart .n{font-family:var(--mono);font-size:11px;text-align:center;color:var(--muted)}
+.chart .v{font-family:var(--mono);font-size:10px;text-align:center;color:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:6px}
+.rank{font-family:var(--display);font-weight:800;font-size:clamp(2rem,10vw,2.8rem);line-height:1;text-wrap:balance}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stats .zone .big{font-size:1.9rem}
+.sr{position:absolute;left:-9999px}
+@media (prefers-reduced-motion:no-preference){ .bar i,.chart .track i{transition:width .5s ease,height .5s ease} }
+</style>
+
+<div class="wrap">
+  <div class="top"><span>Mind the Middle</span><b id="roundLabel">Memory challenge</b></div>
+
+  <section id="intro">
+    <h1>Mind the Middle</h1>
+    <p class="lead">Ten words flash by, one at a time. Type back what you remember, in any order.</p>
+    <div class="card">
+      <span class="label">The challenge</span>
+      <p>Memory research on the serial position effect finds that people recall the first and last words of a list far more often than the ones in between. Words 4 to 7 are worth <span class="mid-tag">double points</span> here. Can you beat the dip?</p>
+      <ul class="rules">
+        <li>5 rounds, each faster than the last (2.0 s down to 0.9 s per word).</li>
+        <li>Order doesn't matter. Small typos still count.</li>
+        <li>14 points per round, 70 in total.</li>
+      </ul>
+    </div>
+    <p class="muted" id="bestLine" hidden></p>
+    <button class="btn" id="startBtn" type="button">Start round 1</button>
+  </section>
+
+  <section id="study" hidden>
+    <div class="ticks" id="ticks" aria-hidden="true"></div>
+    <div class="stage" id="stage">
+      <div class="label"><span class="zl" id="zoneLabel">Get ready</span><span id="speedLabel"></span></div>
+      <div class="word count" id="word" aria-live="off">3</div>
+      <div class="label"><span id="posLabel">&nbsp;</span><span>Remember it</span></div>
+    </div>
+  </section>
+
+  <section id="recall" hidden>
+    <h2>What do you remember?</h2>
+    <p class="muted">Type each word, then press space or Enter. Any order works.</p>
+    <div class="entry">
+      <input id="wordInput" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type a word you remember">
+      <button class="btn" id="addBtn" type="button">Add</button>
+    </div>
+    <div class="chips" id="typedChips"></div>
+    <p class="label" id="typedCount">0 words entered</p>
+    <button class="btn" id="checkBtn" type="button">Check my answers</button>
+  </section>
+
+  <section id="result" hidden>
+    <span class="label" id="resLabel">Round result</span>
+    <div class="score" id="resScore"></div>
+    <div class="zones" id="resZones"></div>
+    <div class="verdict" id="resVerdict"></div>
+    <div class="card">
+      <span class="label">The list, in order</span>
+      <div class="chips" id="resWords"></div>
+      <p class="muted" id="resExtra"></p>
+    </div>
+    <button class="btn" id="nextBtn" type="button">Next round</button>
+  </section>
+
+  <section id="final" hidden>
+    <span class="label">Final result</span>
+    <div class="rank" id="finRank"></div>
+    <p id="finBlurb"></p>
+    <div class="score" id="finScore"></div>
+    <p class="muted" id="finBest"></p>
+    <div class="stats" id="finZones"></div>
+    <div class="card">
+      <span class="label">Your recall by word position</span>
+      <div class="chart" id="chart" role="img" aria-label="Recall rate for each of the 10 word positions, averaged over 5 rounds"></div>
+      <div class="legend"><span class="z-start" style="--c:var(--start)">Start (1-3)</span><span style="--c:var(--mid)">Middle (4-7)</span><span style="--c:var(--end)">End (8-10)</span></div>
+    </div>
+    <div class="verdict" id="finVerdict"></div>
+    <button class="btn" id="againBtn" type="button">Play again</button>
+  </section>
+</div>
+
+<script>
+(function(){
+  var N=10, ROUNDS=5, SPEEDS=[2000,1700,1400,1150,900], MAXR=14;
+  var POOL=['anchor','basket','candle','dolphin','engine','feather','garden','hammer','island','jacket','kettle','ladder','mirror','needle','orange','pencil','quartz','rabbit','saddle','tunnel','umbrella','violin','window','yogurt','zipper','bridge','cactus','desert','falcon','glacier','harbor','igloo','jungle','kitten','lantern','magnet','napkin','ocean','pillow','rocket','spoon','tractor','valley','walnut','button','carpet','drum','elbow','forest','guitar','helmet','insect','lemon','marble','nickel','otter','piano','quilt','ribbon','statue','ticket','vessel','wallet','yacht','zebra','apple','bottle','castle','eagle','flute','goblet','honey','ivory','jewel','knight','lizard','meadow','noodle','olive','parrot','radish','sandal','turtle','velvet','whistle','anvil','barrel','copper','donkey','ember','fossil','gravel','hammock','iceberg','jasmine','koala','locket','mango','nutmeg','orchid','pebble','raccoon','saucer','thimble','vanilla','walrus','cherry'];
+  var TIPS=['Tip: picture word 5 and word 6 interacting in one scene.','Tip: build a tiny story that passes through the middle words.','Tip: pause on the middle words and repeat them silently.'];
+  function $(id){return document.getElementById(id);}
+  var screens=['intro','study','recall','result','final'];
+  function show(n){screens.forEach(function(s){$(s).hidden=(s!==n);}); window.scrollTo(0,0);}
+  function zoneOf(i){return i<3?'start':(i<7?'mid':'end');}
+  var ZN={start:'Start',mid:'Middle',end:'End'};
+  var round=0, used={}, words=[], typed=[], results=[], timer=null;
+
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function pickWords(){
+    var avail=shuffle(POOL.filter(function(w){return !used[w];})).slice(0,N);
+    avail.forEach(function(w){used[w]=1;});
+    return avail;
+  }
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+  function getBest(){try{var v=localStorage.getItem('mtm-best');return v===null?null:parseInt(v,10);}catch(e){return null;}}
+  function setBest(v){try{localStorage.setItem('mtm-best',String(v));}catch(e){}}
+
+  /* ---------- intro ---------- */
+  function showIntro(){
+    round=0;used={};results=[];
+    $('roundLabel').textContent='Memory challenge';
+    var b=getBest(), line=$('bestLine');
+    if(b!==null&&!isNaN(b)){line.hidden=false;line.textContent='Your best score on this device: '+b+' / '+(MAXR*ROUNDS)+'.';}else{line.hidden=true;}
+    $('startBtn').textContent='Start round 1';
+    show('intro');
+  }
+
+  /* ---------- study ---------- */
+  function startRound(){
+    words=pickWords();typed=[];
+    $('roundLabel').textContent='Round '+(round+1)+' of '+ROUNDS;
+    var t=$('ticks');t.textContent='';
+    for(var i=0;i<N;i++){t.appendChild(el('i',zoneOf(i)));}
+    $('speedLabel').textContent=(SPEEDS[round]/1000).toFixed(1)+' s per word';
+    show('study');
+    runCountdown();
+  }
+  function setStage(z){$('stage').className='stage'+(z?' zone-'+z:'');}
+  function runCountdown(){
+    clearTimeout(timer);
+    var w=$('word'),c=3;
+    setStage('');w.className='word count';
+    $('zoneLabel').textContent='Get ready';$('posLabel').innerHTML='&nbsp;';
+    (function tick(){
+      if(c>0){w.textContent=String(c);c--;timer=setTimeout(tick,700);}
+      else{w.className='word';w.textContent='';timer=setTimeout(function(){flash(0);},300);}
+    })();
+  }
+  function flash(i){
+    var w=$('word');
+    if(i>=N){w.textContent='';timer=setTimeout(toRecall,500);return;}
+    var z=zoneOf(i);
+    var ticks=$('ticks').children;
+    for(var k=0;k<N;k++){ticks[k].classList.toggle('on',k<=i);}
+    setStage(z);
+    $('zoneLabel').textContent=ZN[z]+(z==='mid'?' · x2 points':'');
+    $('posLabel').textContent='Word '+(i+1)+' of '+N;
+    w.textContent=words[i];
+    timer=setTimeout(function(){
+      w.textContent='';
+      timer=setTimeout(function(){flash(i+1);},250);
+    },SPEEDS[round]);
+  }
+
+  /* ---------- recall ---------- */
+  function norm(s){return s.toLowerCase().replace(/[^a-z]/g,'');}
+  function toRecall(){
+    typed=[];renderTyped();$('wordInput').value='';
+    $('roundLabel').textContent='Round '+(round+1)+' of '+ROUNDS;
+    show('recall');
+    setTimeout(function(){try{$('wordInput').focus();}catch(e){}},50);
+  }
+  function renderTyped(){
+    var box=$('typedChips');box.textContent='';
+    typed.forEach(function(t,idx){
+      var c=el('span','chip');c.appendChild(document.createTextNode(t));
+      var b=el('button','','×');b.type='button';b.setAttribute('aria-label','Remove '+t);
+      b.addEventListener('click',function(){typed.splice(idx,1);renderTyped();});
+      c.appendChild(b);box.appendChild(c);
+    });
+    $('typedCount').textContent=typed.length+(typed.length===1?' word entered':' words entered');
+  }
+  function commit(text){
+    var parts=text.split(/[\s,;]+/).filter(Boolean);
+    parts.forEach(function(p){
+      var k=norm(p);if(!k)return;
+      if(typed.some(function(t){return norm(t)===k;}))return;
+      typed.push(p);
+    });
+    renderTyped();
+  }
+  function lev(a,b){
+    var m=a.length,n=b.length,d=[],i,j;
+    for(i=0;i<=m;i++){d[i]=[i];}
+    for(j=1;j<=n;j++){d[0][j]=j;}
+    for(i=1;i<=m;i++){for(j=1;j<=n;j++){
+      d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+    }}
+    return d[m][n];
+  }
+  function grade(){
+    var hit=[],usedT={},i;
+    for(i=0;i<N;i++){hit.push(false);}
+    typed.forEach(function(t,ti){
+      var k=norm(t);
+      for(var wi=0;wi<N;wi++){if(!hit[wi]&&norm(words[wi])===k){hit[wi]=true;usedT[ti]=1;break;}}
+    });
+    typed.forEach(function(t,ti){
+      if(usedT[ti])return;
+      var k=norm(t);if(k.length<4)return;
+      for(var wi=0;wi<N;wi++){
+        var wn=norm(words[wi]);
+        if(!hit[wi]&&wn.length>=5&&lev(wn,k)<=1){hit[wi]=true;usedT[ti]=1;break;}
+      }
+    });
+    var score=0,zc={start:0,mid:0,end:0};
+    hit.forEach(function(h,idx){if(h){var z=zoneOf(idx);zc[z]++;score+=(z==='mid'?2:1);}});
+    return {words:words.slice(),hit:hit,score:score,zc:zc,extras:typed.length-Object.keys(usedT).length};
+  }
+
+  /* ---------- result ---------- */
+  function zoneCard(z,got,of){
+    var c=el('div','zone z-'+z);
+    c.appendChild(el('span','label',ZN[z]));
+    c.appendChild(el('span','big',got+'/'+of));
+    var bar=el('div','bar');var f=el('i');f.style.setProperty('--w',Math.round(got/of*100)+'%');bar.appendChild(f);c.appendChild(bar);
+    c.appendChild(el('span','sub',Math.round(got/of*100)+'% recalled'));
+    return c;
+  }
+  function showResult(){
+    var r=grade();results.push(r);
+    $('resLabel').textContent='Round '+(round+1)+' result';
+    var s=$('resScore');s.textContent='';s.appendChild(document.createTextNode(String(r.score)));s.appendChild(el('small',''," / "+MAXR+" pts"));
+    var zs=$('resZones');zs.textContent='';
+    zs.appendChild(zoneCard('start',r.zc.start,3));zs.appendChild(zoneCard('mid',r.zc.mid,4));zs.appendChild(zoneCard('end',r.zc.end,3));
+    var edge=r.zc.start+r.zc.end,edgeP=edge/6,midP=r.zc.mid/4,v;
+    if(r.zc.start+r.zc.mid+r.zc.end===0){
+      v='No words recalled this round. Try linking the words into one story next time.';
+    }else if(midP>edgeP){
+      v='You recalled '+r.zc.mid+' of 4 middle words and '+edge+' of 6 edge words. The middle held up better than the edges, which beats the usual pattern.';
+    }else if(midP===edgeP){
+      v='Your middle and edge recall matched at '+Math.round(midP*100)+'%. No dip this round.';
+    }else{
+      var best=r.zc.start/3>=r.zc.end/3?'beginning':'end';
+      v='You recalled '+edge+' of 6 edge words but only '+r.zc.mid+' of 4 middle words. Your '+best+' words stuck best. This dip is the serial position effect.';
+      v+=' '+TIPS[round%TIPS.length];
+    }
+    $('resVerdict').textContent=v;
+    var ws=$('resWords');ws.textContent='';
+    r.words.forEach(function(w,i){
+      var z=zoneOf(i);
+      var c=el('span','wchip z-'+z+(r.hit[i]?' hit':''));
+      c.appendChild(el('b','',String(i+1)));c.appendChild(document.createTextNode(w));
+      ws.appendChild(c);
+    });
+    $('resExtra').textContent=r.extras>0?(r.extras+(r.extras===1?' word you typed was':' words you typed were')+' not on the list.'):'Every word you typed was on the list.';
+    $('roundLabel').textContent='Round '+(round+1)+' of '+ROUNDS;
+    $('nextBtn').textContent=(round+1<ROUNDS)?'Next round, '+(SPEEDS[round+1]/1000).toFixed(1)+' s per word':'See final result';
+    show('result');
+  }
+
+  /* ---------- final ---------- */
+  function showFinal(){
+    var total=0,zt={start:0,mid:0,end:0},pos=[],i;
+    for(i=0;i<N;i++){pos.push(0);}
+    results.forEach(function(r){total+=r.score;zt.start+=r.zc.start;zt.mid+=r.zc.mid;zt.end+=r.zc.end;r.hit.forEach(function(h,idx){if(h)pos[idx]++;});});
+    var startP=zt.start/(3*ROUNDS),midP=zt.mid/(4*ROUNDS),endP=zt.end/(3*ROUNDS),edgeP=(zt.start+zt.end)/(6*ROUNDS);
+    var midPct=Math.round(midP*100),edgePct=Math.round(edgeP*100);
+    var rank,blurb;
+    if(midPct>=75){rank='Middle Master';blurb='You held the middle of the list almost as well as the edges. That is rare.';}
+    else if(midPct>=50){rank='Middle Holder';blurb='More than half of the middle words stayed with you, even at speed.';}
+    else if(midPct>=25){rank='Typical Human';blurb='The middle slipped, as it does for most people. The edges did the heavy lifting.';}
+    else{rank='Lost in the Middle';blurb='The middle swallowed most of the list. The serial position effect hit you hard.';}
+    $('finRank').textContent=rank;$('finBlurb').textContent=blurb;
+    var sc=$('finScore');sc.textContent='';sc.appendChild(document.createTextNode(String(total)));sc.appendChild(el('small','',' / '+(MAXR*ROUNDS)+' pts'));
+    var prev=getBest(),fb=$('finBest');
+    if(prev===null||isNaN(prev)||total>prev){fb.textContent=(prev===null||isNaN(prev))?'First score saved on this device.':'New personal best. Previous best was '+prev+'.';setBest(total);}
+    else{fb.textContent='Your best on this device is '+prev+'.';}
+    var fz=$('finZones');fz.textContent='';
+    var c1=el('div','zone z-mid');c1.appendChild(el('span','label','Middle recall'));c1.appendChild(el('span','big',midPct+'%'));c1.appendChild(el('span','sub','words 4 to 7'));fz.appendChild(c1);
+    var c2=el('div','zone z-start');c2.appendChild(el('span','label','Edge recall'));c2.appendChild(el('span','big',edgePct+'%'));c2.appendChild(el('span','sub','words 1-3 and 8-10'));fz.appendChild(c2);
+    var ch=$('chart');ch.textContent='';
+    for(i=0;i<N;i++){
+      var p=pos[i]/ROUNDS,z=zoneOf(i);
+      var col=el('div','col z-'+z);
+      var tr=el('div','track');var b=el('i');b.style.setProperty('--h',Math.round(p*100)+'%');tr.appendChild(b);
+      col.appendChild(tr);
+      col.appendChild(el('div','v',Math.round(p*100)+''));
+      col.appendChild(el('div','n',String(i+1)));
+      ch.appendChild(col);
+    }
+    var dip=edgePct-midPct,fv;
+    if(dip>0){fv='Your recall dipped '+dip+' percentage points in the middle compared with the edges. Start: '+Math.round(startP*100)+'%, end: '+Math.round(endP*100)+'%. Play again and try to close the gap.';}
+    else{fv='No dip. Your middle recall matched or beat your edges, so you beat the serial position effect. Start: '+Math.round(startP*100)+'%, end: '+Math.round(endP*100)+'%.';}
+    $('finVerdict').textContent=fv;
+    $('roundLabel').textContent='Final result';
+    show('final');
+  }
+
+  /* ---------- wiring ---------- */
+  $('startBtn').addEventListener('click',function(){round=0;results=[];used={};startRound();});
+  $('againBtn').addEventListener('click',function(){showIntro();});
+  var inp=$('wordInput');
+  inp.addEventListener('input',function(){
+    if(/[\s,;]$/.test(inp.value)){commit(inp.value);inp.value='';}
+  });
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();commit(inp.value);inp.value='';}
+    else if(e.key==='Backspace'&&inp.value===''&&typed.length){typed.pop();renderTyped();}
+  });
+  $('addBtn').addEventListener('click',function(){commit(inp.value);inp.value='';inp.focus();});
+  $('checkBtn').addEventListener('click',function(){commit(inp.value);inp.value='';showResult();});
+  $('nextBtn').addEventListener('click',function(){
+    if(round+1<ROUNDS){round++;startRound();}else{showFinal();}
+  });
+  showIntro();
+})();
+</script>
+
+</body></html>
